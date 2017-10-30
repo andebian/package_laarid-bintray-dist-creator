@@ -1,0 +1,115 @@
+sudo: required
+services:
+- docker
+language: c
+
+env:
+  matrix:
+  - JOB_ARCH=amd64 JOB_NATIVE_BUILD=1
+  - JOB_ARCH=arm64
+  - JOB_ARCH=armel
+  - JOB_ARCH=armhf
+  - JOB_ARCH=i386 JOB_NATIVE_BUILD=1
+  - JOB_ARCH=mips
+  - JOB_ARCH=mips64el
+  - JOB_ARCH=mipsel
+  - JOB_ARCH=ppc64el
+  - JOB_ARCH=s390x
+  global:
+  - DOCKER_EXEC="docker exec test_container"
+  - BINTRAY_USER=laarid
+  - BINTRAY_REPO=main
+  - BINTRAY_DESC="Android dummy library"
+  - BINTRAY_COMPONENT=main
+
+addons:
+  apt:
+    packages:
+    - dpkg-dev
+
+before_install:
+- if [ -z "${JOB_NATIVE_BUILD}" ]; then
+    docker run --rm --privileged vicamo/binfmt-qemu:latest;
+    cat /proc/sys/fs/binfmt_misc/qemu-*;
+  fi
+- |
+  export JOB_SUITE=$(dpkg-parsechangelog | grep ^Distribution: | awk '{print $2}')
+- |
+  docker run --detach --tty \
+    --name test_container \
+    --volume ${TRAVIS_BUILD_DIR%${TRAVIS_REPO_SLUG}}:${TRAVIS_BUILD_DIR%${TRAVIS_REPO_SLUG}} \
+    --workdir ${TRAVIS_BUILD_DIR} \
+    vicamo/debian:${JOB_SUITE}-$(if [ -n "${JOB_NATIVE_BUILD}" ]; then echo ${JOB_ARCH}; else dpkg --print-architecture; fi) \
+    /bin/bash
+
+install:
+- if [ -z "${JOB_NATIVE_BUILD}" ]; then
+    ${DOCKER_EXEC} dpkg --add-architecture ${JOB_ARCH};
+  fi
+- ${DOCKER_EXEC} apt-get update --quiet --quiet
+- ${DOCKER_EXEC} apt-get install --no-install-recommends --yes
+    devscripts
+    equivs
+- |
+  ${DOCKER_EXEC} mk-build-deps \
+    --host-arch ${JOB_ARCH} \
+    --install --remove \
+    --tool 'apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends -y'
+
+script:
+- ${DOCKER_EXEC} dpkg-buildpackage --host-arch ${JOB_ARCH} -i -us -uc -b
+- ${DOCKER_EXEC} make -C build distcheck
+- git status | grep 'working tree clean'
+
+before_deploy:
+- |
+  cat .bintray.json.in | \
+    sed -e "s#@BINTRAY_PACKAGE@#$(${DOCKER_EXEC} dpkg-parsechangelog | grep ^Source: | awk '{print $2}')#g" \
+        -e "s#@BINTRAY_USER@#${BINTRAY_USER}#g" \
+        -e "s#@BINTRAY_REPO@#${BINTRAY_REPO}#g" \
+        -e "s#@BINTRAY_DESC@#${BINTRAY_DESC}#g" \
+        -e "s#@GITHUB_REPO@#${TRAVIS_REPO_SLUG}#g" \
+        -e "s#@BINTRAY_VERSION@#$(${DOCKER_EXEC} dpkg-parsechangelog | grep ^Version: | awk '{print $2}')#g" \
+        -e "s#@BINTRAY_RELEASE_DATE@#$(date -Iseconds --date="$(${DOCKER_EXEC} dpkg-parsechangelog | grep ^Date: | cut -d ' ' -f 2-)")#g" \
+        -e "s#@BINTRAY_OUTDIR@#$(dirname ${TRAVIS_BUILD_DIR})#g" \
+        -e "s#@BINTRAY_POOLABBR@#$(${DOCKER_EXEC} dpkg-parsechangelog | grep ^Source: | awk '{print $2}' | cut -c1)#g" \
+        -e "s#@BINTRAY_SUITE@#${JOB_SUITE}#g" \
+        -e "s#@BINTRAY_COMPONENT@#${BINTRAY_COMPONENT}#g" \
+        -e "s#@BINTRAY_ARCH@#${JOB_ARCH}#g" | \
+    tee bintray.json.arched
+- |
+  cat .bintray.json.in | \
+    sed -e "s#@BINTRAY_PACKAGE@#$(${DOCKER_EXEC} dpkg-parsechangelog | grep ^Source: | awk '{print $2}')#g" \
+        -e "s#@BINTRAY_USER@#${BINTRAY_USER}#g" \
+        -e "s#@BINTRAY_REPO@#${BINTRAY_REPO}#g" \
+        -e "s#@BINTRAY_DESC@#${BINTRAY_DESC}#g" \
+        -e "s#@GITHUB_REPO@#${TRAVIS_REPO_SLUG}#g" \
+        -e "s#@BINTRAY_VERSION@#$(${DOCKER_EXEC} dpkg-parsechangelog | grep ^Version: | awk '{print $2}')#g" \
+        -e "s#@BINTRAY_RELEASE_DATE@#$(date -Iseconds --date="$(${DOCKER_EXEC} dpkg-parsechangelog | grep ^Date: | cut -d ' ' -f 2-)")#g" \
+        -e "s#@BINTRAY_OUTDIR@#$(dirname ${TRAVIS_BUILD_DIR})#g" \
+        -e "s#@BINTRAY_POOLABBR@#$(${DOCKER_EXEC} dpkg-parsechangelog | grep ^Source: | awk '{print $2}' | cut -c1)#g" \
+        -e "s#@BINTRAY_SUITE@#${JOB_SUITE}#g" \
+        -e "s#@BINTRAY_COMPONENT@#${BINTRAY_COMPONENT}#g" \
+        -e "s#@BINTRAY_ARCH@#all#g" | \
+    tee bintray.json.all
+
+deploy:
+- provider: bintray
+  file: bintray.json.arched
+  user: vicamo
+  key:
+    secure: "DFTCvCQ6ie5De4JHFTAB+zGliVF1ZixgGzbH1GjLacDBS136x7Lg4ZR6vSj/WpA498ZW7ZcwdS/ufN7QPupSrD6zMXRI00b7U+F0bpQ3hm+MEsVt5p1/e5z8vfRCXJfieg/XLvwqGakUY2Tv17rbTNmHsVHJyjboNANcPE0Q+UAD3BRPY2vqm8ipRLwVX0itNyWjwPsgwojTe4eMmTDae3MRZ0Ie+LkFYIolBnh2YeyjtW1CJY1PmJRc0NNAuPbaNkGl8kFXEcwiGfhoZ4n/BOAFmohYjS4N8lYN1rsbUkdFJiwHtAWjNznPT16TxHQgFWpa69mnE04qOSCT2RBc5NfKz36E28WoZMK9DDJphjFwi0v6yNCWvmLbCrzqxXH/YeOTq3jXywUeYhdZPJe7O8EyY6MDhQHYL9DMFUBxUX1RU7Vcxsy6xuzJOQj0oxB0CTDA4LH8sPL1uuhPDANorvNkrfc0OFZW8uoUuWzKoZscagMWba9kV3Qaf8F7Wf0tUzcXl4Gl1QphNmGfXelz8Y3DGyI8iR06aZPc53OguVk/kg5cHTJpxYEG8XKvJt6Ch9Fc2Of0SwPZb3q6D83MjpqX19Wy25q0+sGUm7eDxkZBeDlYzNauMJlkZ9WI7nL80jk+RC45OL3E8kGGU1rcr0l7QOFsOreBP5yyHbfTEmY="
+  on:
+    tags: true
+- provider: bintray
+  file: bintray.json.all
+  user: vicamo
+  key:
+    secure: "DFTCvCQ6ie5De4JHFTAB+zGliVF1ZixgGzbH1GjLacDBS136x7Lg4ZR6vSj/WpA498ZW7ZcwdS/ufN7QPupSrD6zMXRI00b7U+F0bpQ3hm+MEsVt5p1/e5z8vfRCXJfieg/XLvwqGakUY2Tv17rbTNmHsVHJyjboNANcPE0Q+UAD3BRPY2vqm8ipRLwVX0itNyWjwPsgwojTe4eMmTDae3MRZ0Ie+LkFYIolBnh2YeyjtW1CJY1PmJRc0NNAuPbaNkGl8kFXEcwiGfhoZ4n/BOAFmohYjS4N8lYN1rsbUkdFJiwHtAWjNznPT16TxHQgFWpa69mnE04qOSCT2RBc5NfKz36E28WoZMK9DDJphjFwi0v6yNCWvmLbCrzqxXH/YeOTq3jXywUeYhdZPJe7O8EyY6MDhQHYL9DMFUBxUX1RU7Vcxsy6xuzJOQj0oxB0CTDA4LH8sPL1uuhPDANorvNkrfc0OFZW8uoUuWzKoZscagMWba9kV3Qaf8F7Wf0tUzcXl4Gl1QphNmGfXelz8Y3DGyI8iR06aZPc53OguVk/kg5cHTJpxYEG8XKvJt6Ch9Fc2Of0SwPZb3q6D83MjpqX19Wy25q0+sGUm7eDxkZBeDlYzNauMJlkZ9WI7nL80jk+RC45OL3E8kGGU1rcr0l7QOFsOreBP5yyHbfTEmY="
+  on:
+    tags: true
+
+notifications:
+  slack:
+    rooms:
+    - secure: "PlcvBxHXFpo5KBamu1jxxxKlDwCE8XEAN8aMkaCpybuv5shmEnoI3mxkq7LOzfYb9nd+XS/1/sCifmV8UEvP5mBLnNdC+/xlaWFNwPum5NFbIltn8XdltGzVvzEwP0yG+hnFM7y/zMXqobdYQ8rQMx3m4eezz+d7jjdTTcEAuiWEuESXBXXt33Oe4L2tEctSzZWo7Uf0t9CBdGNM7vdZG+an6PCip5LCiI9mIeC6xo3qFQZmCvPmhb2Q/iRFWB2uxTLnagOdpgZLo2uI420fftUfQibr1Xhx0v4QbHReGdBTcbPqMJCvqEc/Uzywm18HyFDJ5kaLbd5VGCcf1VCZjwq7Xc2oF/QXCEduqXWMTUdNJSqpO/NAnRPQobrV7+bwEayNieIGQP2kTSuRQlK5ru7hmRMWI7kq4VFt6C/lXU4UiyfnoiRVfR+UTJe28fnwrYOrTx83ZMpBsCoC5ozHif8CPvxrUFtDGlJxyjz1OSw066pcSliBd9YTgT39Cjopyglv75mioiyvpI8Y8SrB3I0JIsOSq3RR8UHli2Lt35C/jy8fHxZ704eHt3SLNciWCr3LxfzbS6WqMgCnWFJVX0JZOT91pyWbal4fux7cblSqnyaN3x2LJ7Or34MCHmlJlmdr4T4z+v6PfzgZq9a0NEC1Tc1YbUCKSi03K8OuzLI="
