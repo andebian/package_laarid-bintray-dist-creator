@@ -1,5 +1,5 @@
-android-dummy (0.0.1+buster1) buster; urgency=low
+android-dummy (0.0.1) unstable; urgency=low
 
   * Initial Release.
 
- -- You-Sheng Yang <vicamo@gmail.com>  Mon, 30 Oct 2017 15:55:02 +0800
+ -- You-Sheng Yang <vicamo@gmail.com>  Thu, 2 Nov 2017 00:05:26 +0800

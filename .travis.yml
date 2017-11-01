@@ -18,9 +18,10 @@ env:
   global:
   - DOCKER_EXEC="docker exec test_container"
   - BINTRAY_USER=laarid
-  - BINTRAY_REPO=main
+  - BINTRAY_REPO=debian
   - BINTRAY_DESC="Android dummy library"
   - BINTRAY_COMPONENT=main
+  - BINTRAY_SUITE=sid
 
 addons:
   apt:
@@ -33,13 +34,11 @@ before_install:
     cat /proc/sys/fs/binfmt_misc/qemu-*;
   fi
 - |
-  export JOB_SUITE=$(dpkg-parsechangelog | grep ^Distribution: | awk '{print $2}')
-- |
   docker run --detach --tty \
     --name test_container \
     --volume ${TRAVIS_BUILD_DIR%${TRAVIS_REPO_SLUG}}:${TRAVIS_BUILD_DIR%${TRAVIS_REPO_SLUG}} \
     --workdir ${TRAVIS_BUILD_DIR} \
-    vicamo/debian:${JOB_SUITE}-$(if [ -n "${JOB_NATIVE_BUILD}" ]; then echo ${JOB_ARCH}; else dpkg --print-architecture; fi) \
+    vicamo/debian:${BINTRAY_SUITE}-$(if [ -n "${JOB_NATIVE_BUILD}" ]; then echo ${JOB_ARCH}; else dpkg --print-architecture; fi) \
     /bin/bash
 
 install:
@@ -73,7 +72,7 @@ before_deploy:
         -e "s#@BINTRAY_RELEASE_DATE@#$(date -Iseconds --date="$(${DOCKER_EXEC} dpkg-parsechangelog | grep ^Date: | cut -d ' ' -f 2-)")#g" \
         -e "s#@BINTRAY_OUTDIR@#$(dirname ${TRAVIS_BUILD_DIR})#g" \
         -e "s#@BINTRAY_POOLABBR@#$(${DOCKER_EXEC} dpkg-parsechangelog | grep ^Source: | awk '{print $2}' | cut -c1)#g" \
-        -e "s#@BINTRAY_SUITE@#${JOB_SUITE}#g" \
+        -e "s#@BINTRAY_SUITE@#${BINTRAY_SUITE}#g" \
         -e "s#@BINTRAY_COMPONENT@#${BINTRAY_COMPONENT}#g" \
         -e "s#@BINTRAY_ARCH@#${JOB_ARCH}#g" | \
     tee bintray.json.arched
@@ -88,7 +87,7 @@ before_deploy:
         -e "s#@BINTRAY_RELEASE_DATE@#$(date -Iseconds --date="$(${DOCKER_EXEC} dpkg-parsechangelog | grep ^Date: | cut -d ' ' -f 2-)")#g" \
         -e "s#@BINTRAY_OUTDIR@#$(dirname ${TRAVIS_BUILD_DIR})#g" \
         -e "s#@BINTRAY_POOLABBR@#$(${DOCKER_EXEC} dpkg-parsechangelog | grep ^Source: | awk '{print $2}' | cut -c1)#g" \
-        -e "s#@BINTRAY_SUITE@#${JOB_SUITE}#g" \
+        -e "s#@BINTRAY_SUITE@#${BINTRAY_SUITE}#g" \
         -e "s#@BINTRAY_COMPONENT@#${BINTRAY_COMPONENT}#g" \
         -e "s#@BINTRAY_ARCH@#all#g" | \
     tee bintray.json.all
