@@ -17,11 +17,11 @@ env:
   - JOB_ARCH=s390x
   global:
   - DOCKER_EXEC="docker exec test_container"
-  - BINTRAY_USER=vicamo
-  - BINTRAY_REPO=dummy
+  - BINTRAY_USER=andebian
+  - BINTRAY_REPO=debian
   - BINTRAY_DESC="Android dummy library"
   - BINTRAY_COMPONENT=main
-  - BINTRAY_SUITE=sid
+  - BINTRAY_SUITE=buster
 
 addons:
   apt:
@@ -99,14 +99,14 @@ deploy:
   key:
     secure: "lInkO/7Kf9n3vVghmmqcEe/7dOIjXXZUL1xlidDqg22clSTC04rXrgkEMdcibhWIXLC0mmWvB73CwwoMOIMEwQoAi5Si0Ks093agEOgveOy3V60VLws9Apuh0ANSCRPID6coO6cK8aDdUty4XsCT3MI8WjKbugci9Ujfmkg57MH4akeYa+mBCmxnxMDwV6fJVS+1u2Fb0YgaP7ExP2VqsGSuULgmwCcSZ7B0dE1FObZiiKK+U2xqNJJVRwC45IgjYfGAJsIAtLtMJrE/yApogdX9Tu/LdXiwqopHCpB4djBBfhCqkACJYUMmWZVRTRC1Zwzxh+vVVZjNY36SbYHbaJCuat3U0puae3JwlKOWJPt2PTYlVC2p7f9TFOuwO4joQjg5rJ9olHZfbgk19r+3BThHSqvxuOIYnNxeaNT2D27pQZmA4UZmPz2QxPjUqGq1wDqo270qlrnen76v/YIsO+aHLEOOvQSor1JYG5GyoLC/3E8ip4sC5Gbq+5+Djn2mRZKgv4XXcAkqmH+bhL/+/jBqWnGtOYnf20T7DMTOrIWFCxSsUpFfBzia2TQ7BAkhfW7FNKizafo+gl15qbUmwVoywWVi6xeL6C06MRnwxWdGWaXbYnwslivLgoV8lIcloCJB7Z2b6QexuNSNUNqqOP/duJXx4Qmt8rBRUBnONnA="
   on:
-    branch: master
+    branch: for-andebian/debian/buster
 - provider: bintray
   file: bintray.json.all
   user: vicamo
   key:
     secure: "lInkO/7Kf9n3vVghmmqcEe/7dOIjXXZUL1xlidDqg22clSTC04rXrgkEMdcibhWIXLC0mmWvB73CwwoMOIMEwQoAi5Si0Ks093agEOgveOy3V60VLws9Apuh0ANSCRPID6coO6cK8aDdUty4XsCT3MI8WjKbugci9Ujfmkg57MH4akeYa+mBCmxnxMDwV6fJVS+1u2Fb0YgaP7ExP2VqsGSuULgmwCcSZ7B0dE1FObZiiKK+U2xqNJJVRwC45IgjYfGAJsIAtLtMJrE/yApogdX9Tu/LdXiwqopHCpB4djBBfhCqkACJYUMmWZVRTRC1Zwzxh+vVVZjNY36SbYHbaJCuat3U0puae3JwlKOWJPt2PTYlVC2p7f9TFOuwO4joQjg5rJ9olHZfbgk19r+3BThHSqvxuOIYnNxeaNT2D27pQZmA4UZmPz2QxPjUqGq1wDqo270qlrnen76v/YIsO+aHLEOOvQSor1JYG5GyoLC/3E8ip4sC5Gbq+5+Djn2mRZKgv4XXcAkqmH+bhL/+/jBqWnGtOYnf20T7DMTOrIWFCxSsUpFfBzia2TQ7BAkhfW7FNKizafo+gl15qbUmwVoywWVi6xeL6C06MRnwxWdGWaXbYnwslivLgoV8lIcloCJB7Z2b6QexuNSNUNqqOP/duJXx4Qmt8rBRUBnONnA="
   on:
-    branch: master
+    branch: for-andebian/debian/buster
 
 notifications:
   slack:
