@@ -1,4 +1,4 @@
 # Compulsory line, this is a version 3 file
 version=3
 
-https://github.com/laarid/package_android-bintray-dist-creator/releases android-bintray-dist-creator-(.*)\.tar\.gz
+https://github.com/vicamo/bintray-dist-creator/releases android-bintray-dist-creator-(.*)\.tar\.gz

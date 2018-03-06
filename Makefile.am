@@ -59,9 +59,9 @@ libandroid_dummy_la_SOURCES = \
 
 # dummy HEADERS
 # --------------
-dummyincdir = $(includedir)/android/dummy-$(DUMMY_API_VERSION)/laarid
+dummyincdir = $(includedir)/android/dummy-$(DUMMY_API_VERSION)/dummy
 dummyinc_HEADERS = \
-	include/laarid/dummy.h
+	include/dummy/dummy.h
 
 CLEANFILES += $(BUILT_SOURCES)
 GITIGNOREFILES += $(BUILT_SOURCES)

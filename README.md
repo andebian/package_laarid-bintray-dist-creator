@@ -1,1 +1,1 @@
-# package_laarid-bintray-dist-creator
+# Bintray Dist Creator

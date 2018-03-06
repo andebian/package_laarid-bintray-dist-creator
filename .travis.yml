@@ -17,8 +17,8 @@ env:
   - JOB_ARCH=s390x
   global:
   - DOCKER_EXEC="docker exec test_container"
-  - BINTRAY_USER=laarid
-  - BINTRAY_REPO=debian
+  - BINTRAY_USER=vicamo
+  - BINTRAY_REPO=dummy
   - BINTRAY_DESC="Android dummy library"
   - BINTRAY_COMPONENT=main
   - BINTRAY_SUITE=sid

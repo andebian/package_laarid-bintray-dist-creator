@@ -7,9 +7,9 @@ Build-Depends:
   libc6-dev,
 Standards-Version: 3.9.5
 Section: libs
-Homepage: https://github.com/laarid/package_android-bintray-dist-creator
-Vcs-Git: git+ssh://git@github.com:laarid/package_android-bintray-dist-creator.git
-Vcs-Browser: https://github.com/laarid/package_android-bintray-dist-creator
+Homepage: https://github.com/vicamo/bintray-dist-creator
+Vcs-Git: git+ssh://git@github.com:vicamo/bintray-dist-creator.git
+Vcs-Browser: https://github.com/vicamo/bintray-dist-creator
 
 Package: libandroid-dummy-doc
 Priority: extra

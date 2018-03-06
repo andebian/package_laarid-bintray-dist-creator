@@ -31,12 +31,12 @@ m4_define([dummy_release_number], [dummy_major_version])
 m4_define([dummy_version],
   [dummy_major_version.dummy_minor_version.dummy_micro_version])
 
-AC_INIT([laarid-dummy], [dummy_version],
-  [https://github.com/laarid/package_laarid-bintray-dist-creator/issues], [],
-  [https://github.com/laarid/package_laarid-bintray-dist-creator])
+AC_INIT([dummy], [dummy_version],
+  [https://github.com/vicamo/bintray-dist-creator/issues], [],
+  [https://github.com/vicamo/bintray-dist-creator])
 
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_SRCDIR([include/laarid/dummy.h])
+AC_CONFIG_SRCDIR([include/dummy/dummy.h])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([build-aux])
 

@@ -1,1 +1,1 @@
-int laarid_dummy_nothing() { return 0; }
+int dummy_nothing() { return 0; }
